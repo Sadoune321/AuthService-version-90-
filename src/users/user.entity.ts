@@ -1,0 +1,43 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToOne,
+} from 'typeorm';
+import { Role } from '../common/role.enum';
+import { Patient } from './patient.entity';
+import { Doctor } from './doctor.entity';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ nullable: false })
+  password: string;
+
+  @Column({ type: 'enum', enum: Role })
+  role: Role;
+
+  @Column({ nullable: true })
+  googleId: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @OneToOne(() => Patient, (patient) => patient.user)
+  patient: Patient;
+
+  @OneToOne(() => Doctor, (doctor) => doctor.user)
+  doctor: Doctor;
+}
