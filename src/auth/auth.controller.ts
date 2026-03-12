@@ -8,12 +8,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from '../common/role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -55,7 +57,7 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
+  async googleAuth(@Query('role') role: string) {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
@@ -78,8 +80,9 @@ export class AuthController {
   async googleMobileAuth(
     @Body('idToken') idToken: string,
     @Body('platform') platform: 'android' | 'ios',
+    @Body('role') role: Role,
   ) {
-    return this.authService.googleMobileLogin(idToken, platform);
+    return this.authService.googleMobileLogin(idToken, platform, role);
   }
 
   @Post('complete-profile')

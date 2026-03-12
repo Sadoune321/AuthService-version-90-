@@ -12,20 +12,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL'),
       scope: ['email', 'profile'],
+      passReqToCallback: true,
     });
   }
 
   async validate(
+    req: any,
     accessToken: string,
     refreshToken: string,
     profile: any,
     done: VerifyCallback,
   ) {
-    const { id, emails } = profile;
+    const { id, emails, name } = profile;
 
     const user = {
       googleId: id,
       email: emails[0].value,
+      firstName: name?.givenName || '',
+      lastName: name?.familyName || '',
+      role: req.query.role || 'PATIENT',
     };
 
     done(null, user);

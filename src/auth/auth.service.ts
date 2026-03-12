@@ -171,6 +171,8 @@ export class AuthService {
   async googleLogin(googleUser: {
     email: string;
     googleId: string;
+    firstName?: string;
+    lastName?: string;
     role?: Role;
   }) {
     let user = await this.usersService.findByGoogleId(googleUser.googleId);
@@ -180,7 +182,9 @@ export class AuthService {
       user = await this.usersService.createGoogleUser({
         email: googleUser.email,
         googleId: googleUser.googleId,
-        role: googleUser.role || Role.PATIENT,
+        firstName: googleUser.firstName || '',
+        lastName: googleUser.lastName || '',
+        role: (googleUser.role as Role) || Role.PATIENT,
       });
       isNewUser = true;
     }
@@ -200,7 +204,11 @@ export class AuthService {
     };
   }
 
-  async googleMobileLogin(idToken: string, platform: 'android' | 'ios') {
+  async googleMobileLogin(
+    idToken: string,
+    platform: 'android' | 'ios',
+    role?: Role,
+  ) {
     try {
       const client =
         platform === 'android' ? this.androidClient : this.webClient;
@@ -227,7 +235,9 @@ export class AuthService {
         user = await this.usersService.createGoogleUser({
           email: payload.email,
           googleId: payload.sub,
-          role: Role.PATIENT,
+          firstName: payload.given_name || '',
+          lastName: payload.family_name || '',
+          role: role || Role.PATIENT,
         });
         isNewUser = true;
       }

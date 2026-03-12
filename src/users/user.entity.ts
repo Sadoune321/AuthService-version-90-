@@ -14,16 +14,16 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable : true})
   firstName: string;
 
-  @Column()
+  @Column({ nullable: true})
   lastName: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   password: string;
 
   @Column({ type: 'enum', enum: Role })

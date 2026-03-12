@@ -114,11 +114,16 @@ export class UsersService {
     email: string;
     googleId: string;
     role: Role;
+    firstName?: string;  // ← ajouté
+    lastName?: string;   // ← ajouté
   }): Promise<User> {
     const user = this.userRepository.create({
       email: data.email,
       googleId: data.googleId,
       role: data.role,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      password: '',
     });
     await this.userRepository.save(user);
     return user;
@@ -139,7 +144,6 @@ export class UsersService {
       throw new NotFoundException('Patient not found');
     }
 
-    // Update User fields
     if (data.firstName || data.lastName) {
       await this.userRepository.update(
         { id: userId },
@@ -150,7 +154,6 @@ export class UsersService {
       );
     }
 
-    // Update Patient fields
     const patientUpdate: Partial<Patient> = {
       ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
       ...(data.gender !== undefined && { gender: data.gender }),
