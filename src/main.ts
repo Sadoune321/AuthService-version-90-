@@ -1,7 +1,7 @@
 // src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import redisClient from './config/redis.config'; // ✅ default export ioredis
+import redisClient from './config/redis.client';// ✅ default export ioredis
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
