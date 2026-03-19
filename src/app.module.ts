@@ -24,13 +24,17 @@ import { Doctor } from './users/doctor.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
-        host: configService.get<string>('mysql.host'),
-        port: configService.get<number>('mysql.port'),
+        host: configService.get<string>('mysql.host'),       
+    port: configService.get<number>('mysql.port'),      
         username: configService.get<string>('mysql.username'),
         password: configService.get<string>('mysql.password'),
         database: configService.get<string>('mysql.database'),
         entities: [User, Patient, Doctor],
         synchronize: true,
+        
+    autoLoadEntities: true,
+    retryAttempts: 5,      // retry pour éviter l’échec immédiat
+    retryDelay: 2000,
       }),
     }),
 
