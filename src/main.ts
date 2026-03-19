@@ -10,9 +10,6 @@ async function bootstrap() {
     transform: true,
   }));
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-
-  console.log(`🚀 AuthService running on port ${port}`);
+  await app.listen(process.env.PORT || 3000, '0.0.0.0'); 
+  console.log(`🚀 AuthService running on port ${process.env.PORT || 3000}`);
 }
-bootstrap();
