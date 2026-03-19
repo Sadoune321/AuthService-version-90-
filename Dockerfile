@@ -8,4 +8,6 @@ RUN npm install
 
 COPY . .
 
+RUN npm run build   # ← ajoute cette ligne !
+
 CMD ["node", "dist/main.js"]
