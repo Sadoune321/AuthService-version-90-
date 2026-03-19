@@ -1,22 +1,23 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { initRedis } from './config/redis.config'; // <- importer la fonction
+import redisClient from './config/redis.config'; // ✅ default export ioredis
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-    }),
-  );
+  try {
+    // Test simple de Redis
+    await redisClient.set('ping', 'pong');
+    const value = await redisClient.get('ping');
+    console.log('Redis ping:', value); // devrait afficher 'pong'
+  } catch (err) {
+    console.error('Erreur Redis:', err);
+  }
 
-  // ─── Initialisation Redis ───────────────────────────
-  await initRedis();
-
-  await app.listen(process.env.PORT || 3000, '0.0.0.0');
-  console.log(`🚀 AuthService running on port ${process.env.PORT || 3000}`);
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  await app.listen(port);
+  console.log(`🚀 Server running on port ${port}`);
 }
+
 bootstrap();

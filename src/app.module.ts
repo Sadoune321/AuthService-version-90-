@@ -5,7 +5,6 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SessionModule } from './session/session.module';
 import mysqlConfig from './config/mysql.config';
-import redisConfig from './config/redis.config';
 import jwtConfig from './config/jwt.config';
 import { User } from './users/user.entity';
 import { Patient } from './users/patient.entity';
@@ -16,7 +15,7 @@ import { Doctor } from './users/doctor.entity';
     // ─── Config ───────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [mysqlConfig, redisConfig, jwtConfig],
+      load: [mysqlConfig, jwtConfig], // ✅ enlever redisConfig ici
     }),
 
     // ─── MySQL ────────────────────────────────────────────

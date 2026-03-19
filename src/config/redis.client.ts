@@ -1,4 +1,4 @@
-// src/config/redis.config.ts
+// src/config/redis.client.ts
 import Redis from 'ioredis';
 
 const redisClient = new Redis({
