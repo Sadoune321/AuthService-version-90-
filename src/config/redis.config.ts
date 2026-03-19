@@ -1,6 +1,10 @@
-import { registerAs } from '@nestjs/config';
+import { Redis } from '@upstash/redis'
 
-export default registerAs('redis', () => ({
-  host: process.env.REDIS_HOST,
- port: parseInt(process.env.REDIS_PORT || '6379', 10),
-}));
+const redis = new Redis({
+  url: process.env.REDIS_HOST,
+  token: process.env.REDIS_PASSWORD,
+  tls: process.env.REDIS_TLS === 'true',
+})
+
+await redis.set("foo", "bar");
+await redis.get("foo");
