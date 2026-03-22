@@ -44,10 +44,15 @@ import { Doctor } from './users/doctor.entity';
           database,
           entities: [User, Patient, Doctor],
           synchronize: true,
-          ssl: { rejectUnauthorized: false },
           autoLoadEntities: true,
           retryAttempts: 5,
           retryDelay: 2000,
+          ssl: true,
+          extra: {
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          },
         };
       },
     }),
