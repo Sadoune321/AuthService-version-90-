@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Role } from '../../common/role.enum';
 import { Gender } from '../../users/dto/patient-profile.dto';
-import { BloodGroup } from '../../common/BloodGroup.enum';
+import { BloodType } from '../../common/BloodGroup.enum';
 
 export class RegisterDto {
   @IsEmail()
@@ -20,11 +20,14 @@ export class RegisterDto {
   @MinLength(8)
   password!: string;
 
+  @IsOptional()
+  @IsString()
+  serialNumber?: string;
+
   @IsEnum(Role)
   @IsNotEmpty()
   role!: Role;
 
-  
   @IsString()
   @IsOptional()
   firstName?: string;
@@ -39,13 +42,12 @@ export class RegisterDto {
 
   @IsString()
   @IsOptional()
-  bloodType?: BloodGroup;
+  bloodType?: BloodType;
 
   @IsString()
   @IsOptional()
   gender?: Gender;
 
-  
   @IsString()
   @IsOptional()
   speciality?: string;

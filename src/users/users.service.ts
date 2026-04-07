@@ -6,7 +6,7 @@ import { Patient } from './patient.entity';
 import { Doctor } from './doctor.entity';
 import { Role } from '../common/role.enum';
 import { hashPassword } from '../common/hash.util';
-import { BloodGroup } from '../common/BloodGroup.enum';
+import { BloodType } from '../common/BloodGroup.enum';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +48,7 @@ export class UsersService {
     firstName: string;
     lastName: string;
     phoneNumber?: string;
-    bloodType?: BloodGroup;
+    bloodType?: BloodType;
     gender?: string;
   }): Promise<User> {
     const hashedPassword = await hashPassword(data.password);
@@ -63,10 +63,10 @@ export class UsersService {
 
     await this.userRepository.save(user);
 
-    const bloodType: BloodGroup | undefined =
+    const bloodType: BloodType | undefined =
       data.bloodType &&
-      Object.values(BloodGroup).includes(data.bloodType as BloodGroup)
-        ? (data.bloodType as BloodGroup)
+      Object.values(BloodType).includes(data.bloodType as BloodType)
+        ? (data.bloodType as BloodType)
         : undefined;
 
     const patient = this.patientRepository.create({
@@ -85,28 +85,30 @@ export class UsersService {
     password: string;
     firstName: string;
     lastName: string;
+    serialNumber: string;
     speciality: string;
-    establishment?: string;
+    establishment: string;
   }): Promise<User> {
+
     const hashedPassword = await hashPassword(data.password);
 
     const user = this.userRepository.create({
       email: data.email,
       password: hashedPassword,
+      role: Role.DOCTOR,
       firstName: data.firstName,
       lastName: data.lastName,
-      role: Role.DOCTOR,
     });
-
     await this.userRepository.save(user);
 
     const doctor = this.doctorRepository.create({
+      serialNumber: data.serialNumber,
       speciality: data.speciality,
       establishment: data.establishment,
-      user: user,
+      user,
     });
-
     await this.doctorRepository.save(doctor);
+
     return user;
   }
 
@@ -114,11 +116,16 @@ export class UsersService {
     email: string;
     googleId: string;
     role: Role;
+    firstName?: string;
+    lastName?: string;
   }): Promise<User> {
     const user = this.userRepository.create({
       email: data.email,
       googleId: data.googleId,
       role: data.role,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      password: '',
     });
     await this.userRepository.save(user);
     return user;
@@ -129,8 +136,9 @@ export class UsersService {
     data: {
       firstName?: string;
       lastName?: string;
+      password?: string;
       phoneNumber?: string;
-      bloodType?: BloodGroup;
+      bloodType?: BloodType;
       gender?: string;
     },
   ): Promise<void> {
@@ -139,38 +147,35 @@ export class UsersService {
       throw new NotFoundException('Patient not found');
     }
 
-    // Update User fields
-    if (data.firstName || data.lastName) {
-      await this.userRepository.update(
-        { id: userId },
-        {
-          ...(data.firstName && { firstName: data.firstName }),
-          ...(data.lastName && { lastName: data.lastName }),
-        },
-      );
+   
+    const userUpdate: Partial<User> = {};
+    if (data.firstName) userUpdate.firstName = data.firstName;
+    if (data.lastName) userUpdate.lastName = data.lastName;
+    if (data.password) userUpdate.password = await hashPassword(data.password);
+
+    if (Object.keys(userUpdate).length > 0) {
+      await this.userRepository.update({ id: userId }, userUpdate);
     }
 
-    // Update Patient fields
-    const patientUpdate: Partial<Patient> = {
-      ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
-      ...(data.gender !== undefined && { gender: data.gender }),
-      ...(data.bloodType &&
-        Object.values(BloodGroup).includes(data.bloodType) && {
-          bloodType: data.bloodType,
-        }),
-    };
+   
+    const patientUpdate: Partial<Patient> = {};
+    if (data.phoneNumber !== undefined) patientUpdate.phoneNumber = data.phoneNumber;
+    if (data.gender !== undefined) patientUpdate.gender = data.gender;
+    if (data.bloodType && Object.values(BloodType).includes(data.bloodType)) {
+      patientUpdate.bloodType = data.bloodType;
+    }
 
     if (Object.keys(patientUpdate).length > 0) {
-      await this.patientRepository.update(
-        { id: user.patient.id },
-        patientUpdate,
-      );
+      await this.patientRepository.update({ id: user.patient.id }, patientUpdate);
     }
   }
 
   async updateDoctorProfile(
     userId: string,
     data: {
+      firstName?: string;
+      lastName?: string;
+      password?: string;
       speciality?: string;
       establishment?: string;
     },
@@ -180,6 +185,23 @@ export class UsersService {
       throw new NotFoundException('Doctor not found');
     }
 
-    await this.doctorRepository.update({ id: user.doctor.id }, data);
+    
+    const userUpdate: Partial<User> = {};
+    if (data.firstName) userUpdate.firstName = data.firstName;
+    if (data.lastName) userUpdate.lastName = data.lastName;
+    if (data.password) userUpdate.password = await hashPassword(data.password);
+
+    if (Object.keys(userUpdate).length > 0) {
+      await this.userRepository.update({ id: userId }, userUpdate);
+    }
+
+    
+    const doctorUpdate: Partial<Doctor> = {};
+    if (data.speciality !== undefined) doctorUpdate.speciality = data.speciality;
+    if (data.establishment !== undefined) doctorUpdate.establishment = data.establishment;
+
+    if (Object.keys(doctorUpdate).length > 0) {
+      await this.doctorRepository.update({ id: user.doctor.id }, doctorUpdate);
+    }
   }
 }

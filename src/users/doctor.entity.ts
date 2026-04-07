@@ -1,24 +1,28 @@
 import {
   Entity,
+  PrimaryGeneratedColumn,
+  Column,
   OneToOne,
   JoinColumn,
-  Column,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('doctors')
 export class Doctor {
-  @PrimaryGeneratedColumn()
-  id: number;
 
-  @OneToOne(() => User, (user) => user.doctor, { cascade: true })
-  @JoinColumn()
-  user: User;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ unique: true, nullable: false })
+  serialNumber!: string;
 
   @Column()
-  speciality: string;
+  speciality!: string;
 
-  @Column({ nullable: true })
-  establishment: string;
+  @Column()
+  establishment!: string;
+
+  @OneToOne(() => User, (user) => user.doctor)
+  @JoinColumn()
+  user!: User;
 }

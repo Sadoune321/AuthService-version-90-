@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import { UsersService } from '../users/users.service';
 import { SessionService } from '../session/session.service';
+import { MinisterService } from '../users/minister.service';
 import { comparePassword } from '../common/hash.util';
 import { Role } from '../common/role.enum';
 import { RegisterDto } from './dto/register.dto';
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly ministerService: MinisterService,
   ) {
     this.webClient = new OAuth2Client(
       this.configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -41,6 +43,7 @@ export class AuthService {
     }
 
     let user;
+
     if (dto.role === Role.PATIENT) {
       user = await this.usersService.createPatient({
         email: dto.email,
@@ -51,15 +54,37 @@ export class AuthService {
         bloodType: dto.bloodType,
         gender: dto.gender,
       });
+
     } else if (dto.role === Role.DOCTOR) {
-      user = await this.usersService.createDoctor({
+
+      const isValid = await this.ministerService.isValidSerialNumber(dto.serialNumber!);
+      if (!isValid) {
+        throw new BadRequestException(
+          'Matricule invalide, contactez le ministère de la santé'
+        );
+      }
+
+      const isUsed = await this.ministerService.isAlreadyUsed(dto.serialNumber!);
+      if (isUsed) {
+        throw new ConflictException(
+          'Ce matricule est déjà associé à un compte'
+        );
+      }
+
+      const doctorData = {
         email: dto.email,
         password: dto.password,
         firstName: dto.firstName!,
         lastName: dto.lastName!,
+        serialNumber: dto.serialNumber!,
         speciality: dto.speciality!,
-        establishment: dto.establishment,
-      });
+        establishment: dto.establishment!,
+      } as any;
+
+      user = await this.usersService.createDoctor(doctorData);
+
+      await this.ministerService.markAsUsed(dto.serialNumber!);
+
     } else {
       throw new BadRequestException('Rôle invalide');
     }
@@ -171,6 +196,8 @@ export class AuthService {
   async googleLogin(googleUser: {
     email: string;
     googleId: string;
+    firstName?: string;
+    lastName?: string;
     role?: Role;
   }) {
     let user = await this.usersService.findByGoogleId(googleUser.googleId);
@@ -180,7 +207,9 @@ export class AuthService {
       user = await this.usersService.createGoogleUser({
         email: googleUser.email,
         googleId: googleUser.googleId,
-        role: googleUser.role || Role.PATIENT,
+        firstName: googleUser.firstName || '',
+        lastName: googleUser.lastName || '',
+        role: (googleUser.role as Role) || Role.PATIENT,
       });
       isNewUser = true;
     }
@@ -200,7 +229,11 @@ export class AuthService {
     };
   }
 
-  async googleMobileLogin(idToken: string, platform: 'android' | 'ios') {
+  async googleMobileLogin(
+    idToken: string,
+    platform: 'android' | 'ios',
+    role?: Role,
+  ) {
     try {
       const client =
         platform === 'android' ? this.androidClient : this.webClient;
@@ -227,7 +260,9 @@ export class AuthService {
         user = await this.usersService.createGoogleUser({
           email: payload.email,
           googleId: payload.sub,
-          role: Role.PATIENT,
+          firstName: payload.given_name || '',
+          lastName: payload.family_name || '',
+          role: role || Role.PATIENT,
         });
         isNewUser = true;
       }
@@ -252,14 +287,30 @@ export class AuthService {
 
   async completeProfile(userId: string, data: any) {
     const user = await this.usersService.findById(userId);
-
-    if (user!.role === Role.PATIENT) {
-      await this.usersService.updatePatientProfile(userId, data);
-    } else if (user!.role === Role.DOCTOR) {
-      await this.usersService.updateDoctorProfile(userId, data);
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur introuvable');
     }
 
-    return { message: 'Profil complété avec succès' };
+    if (user.role === Role.PATIENT) {
+      await this.usersService.updatePatientProfile(userId, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+        phoneNumber: data.phoneNumber,
+        bloodType: data.bloodType,
+        gender: data.gender,
+      });
+    } else if (user.role === Role.DOCTOR) {
+      await this.usersService.updateDoctorProfile(userId, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+        speciality: data.speciality,
+        establishment: data.establishment,
+      });
+    }
+
+    return { message: 'Profil modifié avec succès' };
   }
 
   private async generateTokens(id: string, email: string, role: string) {
