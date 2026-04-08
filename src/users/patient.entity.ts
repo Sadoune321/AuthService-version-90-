@@ -5,7 +5,7 @@ import {
   Column,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BloodGroup } from '../common/BloodGroup.enum';
+import { BloodType } from '../common/BloodGroup.enum';
 import { User } from './user.entity';
 
 @Entity('patients')
@@ -24,7 +24,7 @@ export class Patient {
   phoneNumber: string;
 
   @Column({ name: 'bloodGroup', type: 'varchar', nullable: true })
-  bloodType: BloodGroup;
+  bloodType: BloodType;
 
   @Column({ nullable: true })
   gender: string;
