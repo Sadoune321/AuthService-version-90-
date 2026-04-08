@@ -1,16 +1,18 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   OneToOne,
   JoinColumn,
+  BeforeInsert,
 } from 'typeorm';
 import { User } from './user.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity('doctors')
 export class Doctor {
 
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('char', { length: 36 })
   id!: string;
 
   @Column({ unique: true, nullable: false })
@@ -25,4 +27,11 @@ export class Doctor {
   @OneToOne(() => User, (user) => user.doctor)
   @JoinColumn()
   user!: User;
+
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4();
+    }
+  }
 }
