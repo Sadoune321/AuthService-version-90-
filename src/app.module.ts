@@ -1,41 +1,63 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SessionModule } from './session/session.module';
+import { Minister } from './users/minister.entity';
+
 import mysqlConfig from './config/mysql.config';
-import redisConfig from './config/redis.config';
 import jwtConfig from './config/jwt.config';
+
 import { User } from './users/user.entity';
 import { Patient } from './users/patient.entity';
 import { Doctor } from './users/doctor.entity';
 
 @Module({
   imports: [
-    // ─── Config ───────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [mysqlConfig, redisConfig, jwtConfig],
+      load: [mysqlConfig, jwtConfig],
     }),
 
-    // ─── MySQL ────────────────────────────────────────────
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
-        host: configService.get<string>('mysql.host'),
-        port: configService.get<number>('mysql.port'),
-        username: configService.get<string>('mysql.username'),
-        password: configService.get<string>('mysql.password'),
-        database: configService.get<string>('mysql.database'),
-        entities: [User, Patient, Doctor],
-        synchronize: true,
-      }),
+      useFactory: (config: ConfigService) => {
+        const host = config.get<string>('mysql.host');
+        const port = config.get<number>('mysql.port');
+        const username = config.get<string>('mysql.username');
+        const password = config.get<string>('mysql.password');
+        const database = config.get<string>('mysql.database');
+
+        console.log('✅ MYSQL CONFIG DEBUG');
+        console.log('HOST:', host);
+        console.log('PORT:', port);
+        console.log('USER:', username);
+        console.log('DB:', database);
+
+        return {
+          type: 'mysql',
+          host,
+          port,
+          username,
+          password,
+          database,
+          entities: [User, Patient, Doctor, Minister],
+          synchronize: true,
+          autoLoadEntities: true,
+          retryAttempts: 5,
+          retryDelay: 2000,
+          ssl: true,
+          extra: {
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          },
+        };
+      },
     }),
 
-    // ─── Modules ──────────────────────────────────────────
     AuthModule,
     UsersModule,
     SessionModule,
