@@ -1,4 +1,4 @@
-export enum BloodGroup {
+export enum BloodType {
   A_POS  = 'A+',
   A_NEG  = 'A-',
   B_POS  = 'B+',
