@@ -1,4 +1,5 @@
 import { registerAs } from '@nestjs/config';
+import { Doctor } from 'src/users/doctor.entity';
 
 export default registerAs('mysql', () => ({
   host: process.env.MYSQL_HOST,
@@ -6,4 +7,7 @@ export default registerAs('mysql', () => ({
   username: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
+  ssl: {
+    rejectUnauthorized: false  
+  },
 }));
