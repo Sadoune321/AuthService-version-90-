@@ -1,6 +1,7 @@
-import { registerAs } from '@nestjs/config';
+import Redis from 'ioredis';
 
-export default registerAs('redis', () => ({
-  host: process.env.REDIS_HOST,
- port: parseInt(process.env.REDIS_PORT || '6379', 10),
-}));
+const redisClient = new Redis(process.env.REDIS_URL!, {
+  tls: {},
+});
+
+export default redisClient;
