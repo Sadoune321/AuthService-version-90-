@@ -146,7 +146,13 @@ export class UsersService {
     if (!user || !user.patient) {
       throw new NotFoundException('Patient not found');
     }
-
+    async findAllIdsByRole(role: Role): Promise<{ ids: string[] }> {
+    const users = await this.userRepository.find({
+     where: { role },
+     select: ['id'],
+     });
+     return { ids: users.map((u) => u.id) };
+     }
    
     const userUpdate: Partial<User> = {};
     if (data.firstName) userUpdate.firstName = data.firstName;
