@@ -5,6 +5,7 @@ import {
   Body,
   Req,
   Res,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -53,6 +54,37 @@ export class AuthController {
     return this.authService.getProfile(userId);
   }
 
+ 
+  @Get('patients/ids')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async getAllPatientIds() {
+    return this.authService.getAllPatientIds();
+  }
+
+  @Get('doctors/ids')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async getAllDoctorIds() {
+    return this.authService.getAllDoctorIds();
+  }
+
+  @Get('patient/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async getPatientById(@Param('id') id: string) {
+    return this.authService.getPatientById(id);
+  }
+
+  @Get('doctor/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async getDoctorById(@Param('id') id: string) {
+    return this.authService.getDoctorById(id);
+  }
+
+ 
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth() {}
@@ -61,13 +93,11 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: Request, @Res() res: Response) {
     const result = await this.authService.googleLogin(req.user as any);
-
     if (result.isNewUser) {
       return res.redirect(
         `http://localhost:3001/complete-profile?token=${result.accessToken}&role=${result.role}`,
       );
     }
-
     return res.redirect(
       `http://localhost:3001/login-success?token=${result.accessToken}`,
     );
