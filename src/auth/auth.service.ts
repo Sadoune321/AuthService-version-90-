@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -54,20 +55,18 @@ export class AuthService {
         bloodType: dto.bloodType,
         gender: dto.gender,
       });
-
     } else if (dto.role === Role.DOCTOR) {
-
       const isValid = await this.ministerService.isValidSerialNumber(dto.serialNumber!);
       if (!isValid) {
         throw new BadRequestException(
-          'Matricule invalide, contactez le ministère de la santé'
+          'Matricule invalide, contactez le ministère de la santé',
         );
       }
 
       const isUsed = await this.ministerService.isAlreadyUsed(dto.serialNumber!);
       if (isUsed) {
         throw new ConflictException(
-          'Ce matricule est déjà associé à un compte'
+          'Ce matricule est déjà associé à un compte',
         );
       }
 
@@ -82,9 +81,7 @@ export class AuthService {
       } as any;
 
       user = await this.usersService.createDoctor(doctorData);
-
       await this.ministerService.markAsUsed(dto.serialNumber!);
-
     } else {
       throw new BadRequestException('Rôle invalide');
     }
@@ -312,6 +309,62 @@ export class AuthService {
 
     return { message: 'Profil modifié avec succès' };
   }
+
+  
+
+  async getPatientById(id: string) {
+    const user = await this.usersService.findById(id);
+    if (!user || user.role !== Role.PATIENT) {
+      throw new NotFoundException('Patient introuvable');
+    }
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      createdAt: user.createdAt,
+      patient: user.patient
+        ? {
+            dateOfBirth: user.patient.dateOfBirth,
+            phoneNumber: user.patient.phoneNumber,
+            bloodType: user.patient.bloodType,
+            gender: user.patient.gender,
+          }
+        : null,
+    };
+  }
+
+  async getDoctorById(id: string) {
+    const user = await this.usersService.findById(id);
+    if (!user || user.role !== Role.DOCTOR) {
+      throw new NotFoundException('Médecin introuvable');
+    }
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      createdAt: user.createdAt,
+      doctor: user.doctor
+        ? {
+            speciality: user.doctor.speciality,
+            establishment: user.doctor.establishment,
+          }
+        : null,
+    };
+  }
+
+  async getAllPatientIds() {
+    return this.usersService.findAllIdsByRole(Role.PATIENT);
+  }
+
+  async getAllDoctorIds() {
+    return this.usersService.findAllIdsByRole(Role.DOCTOR);
+  }
+
+ 
 
   private async generateTokens(id: string, email: string, role: string) {
     const payload = { id, email, role };
