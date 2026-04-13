@@ -89,7 +89,6 @@ export class UsersService {
     speciality: string;
     establishment: string;
   }): Promise<User> {
-
     const hashedPassword = await hashPassword(data.password);
 
     const user = this.userRepository.create({
@@ -146,14 +145,7 @@ export class UsersService {
     if (!user || !user.patient) {
       throw new NotFoundException('Patient not found');
     }
-    async findAllIdsByRole(role: Role): Promise<{ ids: string[] }> {
-    const users = await this.userRepository.find({
-     where: { role },
-     select: ['id'],
-     });
-     return { ids: users.map((u) => u.id) };
-     }
-   
+
     const userUpdate: Partial<User> = {};
     if (data.firstName) userUpdate.firstName = data.firstName;
     if (data.lastName) userUpdate.lastName = data.lastName;
@@ -163,7 +155,6 @@ export class UsersService {
       await this.userRepository.update({ id: userId }, userUpdate);
     }
 
-   
     const patientUpdate: Partial<Patient> = {};
     if (data.phoneNumber !== undefined) patientUpdate.phoneNumber = data.phoneNumber;
     if (data.gender !== undefined) patientUpdate.gender = data.gender;
@@ -191,7 +182,6 @@ export class UsersService {
       throw new NotFoundException('Doctor not found');
     }
 
-    
     const userUpdate: Partial<User> = {};
     if (data.firstName) userUpdate.firstName = data.firstName;
     if (data.lastName) userUpdate.lastName = data.lastName;
@@ -201,7 +191,6 @@ export class UsersService {
       await this.userRepository.update({ id: userId }, userUpdate);
     }
 
-    
     const doctorUpdate: Partial<Doctor> = {};
     if (data.speciality !== undefined) doctorUpdate.speciality = data.speciality;
     if (data.establishment !== undefined) doctorUpdate.establishment = data.establishment;
@@ -209,5 +198,15 @@ export class UsersService {
     if (Object.keys(doctorUpdate).length > 0) {
       await this.doctorRepository.update({ id: user.doctor.id }, doctorUpdate);
     }
+  }
+
+ 
+
+  async findAllIdsByRole(role: Role): Promise<{ ids: string[] }> {
+    const users = await this.userRepository.find({
+      where: { role },
+      select: ['id'],
+    });
+    return { ids: users.map((u) => u.id) };
   }
 }
