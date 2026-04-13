@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { User } from './user.entity';
 import { Patient } from './patient.entity';
 import { Doctor } from './doctor.entity';
@@ -100,7 +101,9 @@ export class UsersService {
     });
     await this.userRepository.save(user);
 
+   
     const doctor = this.doctorRepository.create({
+      id: uuidv4(),
       serialNumber: data.serialNumber,
       speciality: data.speciality,
       establishment: data.establishment,
@@ -199,8 +202,6 @@ export class UsersService {
       await this.doctorRepository.update({ id: user.doctor.id }, doctorUpdate);
     }
   }
-
- 
 
   async findAllIdsByRole(role: Role): Promise<{ ids: string[] }> {
     const users = await this.userRepository.find({
