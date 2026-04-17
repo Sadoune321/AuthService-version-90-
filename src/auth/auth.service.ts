@@ -359,7 +359,13 @@ export class AuthService {
   async getAllPatientIds() {
     return this.usersService.findAllIdsByRole(Role.PATIENT);
   }
-
+  async getSession(userId: string) {
+  const session = await this.sessionService.getSession(userId);
+  if (!session) {
+    throw new UnauthorizedException('Session introuvable ou expirée');
+  }
+  return session;
+  }
   async getAllDoctorIds() {
     return this.usersService.findAllIdsByRole(Role.DOCTOR);
   }
