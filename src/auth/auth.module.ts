@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
+import { RestrictGuard } from './restrict.guard';
 import { UsersModule } from '../users/users.module';
 import { SessionModule } from '../session/session.module';
 
@@ -27,6 +28,7 @@ import { SessionModule } from '../session/session.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, RestrictGuard],
+  exports: [RestrictGuard, JwtModule],
 })
 export class AuthModule {}
