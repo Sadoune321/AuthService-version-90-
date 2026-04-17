@@ -53,7 +53,13 @@ export class AuthController {
     const userId = (req.user as any).id;
     return this.authService.getProfile(userId);
   }
-
+  @Get('session')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async getSession(@Req() req: Request) {
+    const userId = (req.user as any).id;
+    return this.authService.getSession(userId);
+  }
  
   @Get('patients/ids')
   @HttpCode(HttpStatus.OK)
