@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from './role.enum';          // ← ajoute
-import { ROLES_KEY } from './roles.decorator'; // ← ajoute
+import { Role } from './role.enum';
+import { ROLES_KEY } from './roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -33,7 +33,7 @@ export class RolesGuard implements CanActivate {
 
     if (!hasRole) {
       throw new ForbiddenException(
-        `Accès refusé : rôle '${user.role}' non autorisé`,
+        `Accès refusé : rôle '${user.role}' non autorisé pour cette ressource`,
       );
     }
 
