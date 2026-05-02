@@ -15,8 +15,8 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { Roles } from './roles.decorator';
-import { RolesGuard } from './roles.guard';
+import { Roles } from '../common/roles.decorator';
+import { RolesGuard } from '../common/roles.guard';
 import { Role } from '../common/role.enum';
 
 @Controller('auth')
@@ -49,7 +49,6 @@ export class AuthController {
     return this.authService.refreshToken(refreshToken);
   }
 
-
   @Get('profile')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'))
@@ -58,7 +57,6 @@ export class AuthController {
     return this.authService.getProfile(userId);
   }
 
- 
   @Get('session')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'))
@@ -67,7 +65,6 @@ export class AuthController {
     return this.authService.getSession(userId);
   }
 
-  
   @Get('patients/ids')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -84,7 +81,6 @@ export class AuthController {
     return this.authService.getAllDoctorIds();
   }
 
-
   @Get('patient/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -93,7 +89,6 @@ export class AuthController {
     return this.authService.getPatientById(id);
   }
 
-
   @Get('doctor/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -101,8 +96,6 @@ export class AuthController {
   async getDoctorById(@Param('id') id: string) {
     return this.authService.getDoctorById(id);
   }
-
-  
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -130,7 +123,6 @@ export class AuthController {
   ) {
     return this.authService.googleMobileLogin(idToken, platform);
   }
-
 
   @Post('complete-profile')
   @HttpCode(HttpStatus.OK)
